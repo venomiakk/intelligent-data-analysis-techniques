@@ -1,158 +1,191 @@
 import json
-from tkinter import *
-from tkinter import filedialog as fd, filedialog
-from tkinter import ttk
-from tkinter.messagebox import showinfo
-
+import sys
+from PyQt5.QtWidgets import QApplication, QWidget, QVBoxLayout, QLabel, QPushButton, QComboBox, QCheckBox, QLineEdit, QListWidget, QFileDialog, QMessageBox
+from PyQt5.QtCore import Qt
 from Converter import Converter
 
-
-class Interface:
+class Interface(QWidget):
     def __init__(self):
-        self.chk_state = None
+        super().__init__()
         self.file_path = ""
         self.converter = Converter()
-        window = Tk()
-        window.title("Excel to Word/PDF Converter")
-        self.create_widgets(window)
-        window.mainloop()
+        self.settings_file = "settings.json"
+        self.initUI()
+        self.load_settings()
 
-    def create_widgets(self, window):
-        window.geometry("450x600")
+    def initUI(self):
+        self.setWindowTitle("Excel to Word/PDF Converter")
+        self.setGeometry(100, 100, 450, 600)
+        layout = QVBoxLayout()
 
-        # Frame for file selection
-        file_frame = Frame(window)
-        file_frame.grid(column=0, row=0, columnspan=2, pady=10)
-        Label(file_frame, text="Wybierz plik excel aby go przekonwertowac").grid(column=0, row=0)
-        Button(file_frame, text='Open', command=self.choose_file).grid(column=1, row=0)
+        # File selection
+        layout.addWidget(QLabel("Wybierz plik excel aby go przekonwertowac"))
+        self.file_button = QPushButton('Open')
+        self.file_button.clicked.connect(self.choose_file)
+        layout.addWidget(self.file_button)
 
-        # Frame for format selection
-        format_frame = Frame(window)
-        format_frame.grid(column=0, row=1, columnspan=2, pady=10)
-        Label(format_frame, text="Wybierz format na jaki chcesz przekonwertowac plik").grid(column=0, row=0)
-        self.combo = ttk.Combobox(format_frame)
-        self.combo['values'] = ("docx", "pdf")
-        self.combo.current(1)
-        self.combo.grid(column=1, row=0)
+        # Format selection
+        layout.addWidget(QLabel("Wybierz format na jaki chcesz przekonwertowac plik"))
+        self.combo = QComboBox()
+        self.combo.addItems(["docx", "pdf"])
+        layout.addWidget(self.combo)
 
-        # Frame for settings buttons
-        settings_frame = Frame(window)
-        settings_frame.grid(column=0, row=2, columnspan=2, pady=10)
-        Button(settings_frame, text='Save Settings', command=self.save_settings).grid(column=0, row=0, padx=5)
-        Button(settings_frame, text='Load Settings', command=self.load_settings).grid(column=1, row=0, padx=5)
+        # Font size and line interval
+        layout.addWidget(QLabel("Podaj wielkość znaków"))
+        self.font_size = QLineEdit()
+        layout.addWidget(self.font_size)
+        layout.addWidget(QLabel("Podaj odstęp linii"))
+        self.interval = QLineEdit()
+        layout.addWidget(self.interval)
 
-        # Frame for font size and line interval
-        font_frame = Frame(window)
-        font_frame.grid(column=0, row=3, columnspan=2, pady=10)
-        Label(font_frame, text="Podaj wielkość znaków").grid(column=0, row=0)
-        self.font_size = Entry(font_frame, width=10)
-        self.font_size.grid(column=1, row=0)
-        Label(font_frame, text="Podaj odstęp linii").grid(column=0, row=1)
-        self.interval = Entry(font_frame, width=10)
-        self.interval.grid(column=1, row=1)
+        # Title option
+        self.title_chk_state = QCheckBox("Czy chcesz dodać tytuł?")
+        self.title_chk_state.stateChanged.connect(self.toggle_title_entry)
+        layout.addWidget(self.title_chk_state)
+        self.title_label = QLabel("Podaj tytuł dokumentu")
+        self.title = QLineEdit()
+        layout.addWidget(self.title_label)
+        layout.addWidget(self.title)
+        self.title_label.hide()
+        self.title.hide()
 
-        # Frame for title option
-        title_frame = Frame(window)
-        title_frame.grid(column=0, row=4, columnspan=2, pady=10)
-        self.title_chk_state = BooleanVar()
-        self.title_chk_state.set(False)
-        Checkbutton(title_frame, text="Czy chcesz dodać tytuł?", var=self.title_chk_state,
-                    command=self.toggle_title_entry).grid(column=0, row=0)
-        self.title_label = Label(title_frame, text="Podaj tytuł dokumentu")
-        self.title = Entry(title_frame, width=30)
+        # Title page option
+        self.title_page_chk_state = QCheckBox("Czy chcesz stronę tytułową?")
+        layout.addWidget(self.title_page_chk_state)
 
-        # Frame for column selection
-        column_frame = Frame(window)
-        column_frame.grid(column=0, row=5, columnspan=2, pady=10)
-        Label(column_frame, text="Wybierz kolumny do uwzględnienia:").grid(column=0, row=0, columnspan=2)
-        self.column_listbox = Listbox(column_frame, selectmode=MULTIPLE)
-        self.column_listbox.grid(column=0, row=1, columnspan=2)
+        # Description option
+        self.description_chk_state = QCheckBox("Czy chcesz opis?")
+        self.description_chk_state.stateChanged.connect(self.toggle_description_entry)
+        layout.addWidget(self.description_chk_state)
+        self.description_label = QLabel("Podaj opis dokumentu")
+        self.description = QLineEdit()
+        layout.addWidget(self.description_label)
+        layout.addWidget(self.description)
+        self.description_label.hide()
+        self.description.hide()
 
-        # Frame for single line option
-        single_line_frame = Frame(window)
-        single_line_frame.grid(column=0, row=6, columnspan=2, pady=10)
-        Label(single_line_frame, text="Czy tytuł kolumny i jej zawartość mają być w jednym wierszu?").grid(column=0,
-                                                                                                           row=0)
-        self.single_line = BooleanVar()
-        self.single_line.set(True)
-        Checkbutton(single_line_frame, text='Tak/Nie', var=self.single_line).grid(column=1, row=0)
+        # Column selection
+        layout.addWidget(QLabel("Wybierz kolumny do uwzględnienia:"))
+        self.column_listbox = QListWidget()
+        self.column_listbox.setSelectionMode(QListWidget.MultiSelection)
+        layout.addWidget(self.column_listbox)
 
-        # Frame for text alignment
-        alignment_frame = Frame(window)
-        alignment_frame.grid(column=0, row=7, columnspan=2, pady=10)
-        Label(alignment_frame, text="Wybierz wyrównanie tekstu:").grid(column=0, row=0)
-        self.alignment = ttk.Combobox(alignment_frame)
-        self.alignment['values'] = ("left", "center", "right")
-        self.alignment.current(0)
-        self.alignment.grid(column=1, row=0)
+        # Single line option
+        layout.addWidget(QLabel("Czy tytuł kolumny i jej zawartość mają być w jednym wierszu?"))
+        self.single_line = QCheckBox('Tak/Nie')
+        layout.addWidget(self.single_line)
+
+        # Text alignment
+        layout.addWidget(QLabel("Wybierz wyrównanie tekstu:"))
+        self.alignment = QComboBox()
+        self.alignment.addItems(["left", "center", "right"])
+        layout.addWidget(self.alignment)
 
         # Save button
-        Button(window, text='Save', command=self.save_file).grid(column=0, row=8, columnspan=2, pady=10)
+        self.save_button = QPushButton('Save')
+        self.save_button.clicked.connect(self.save_file)
+        layout.addWidget(self.save_button)
+
+        # Save settings button
+        self.save_settings_button = QPushButton('Save Settings')
+        self.save_settings_button.clicked.connect(self.save_settings)
+        layout.addWidget(self.save_settings_button)
+
+        # Load settings button
+        self.load_settings_button = QPushButton('Load Settings')
+        self.load_settings_button.clicked.connect(self.load_settings)
+        layout.addWidget(self.load_settings_button)
+
+        self.setLayout(layout)
+        self.show()
 
     def choose_file(self):
-        self.file_path = filedialog.askopenfilename(title="Select file")
-        self.converter.path = self.file_path
-        df = self.converter.open_file()
-        self.column_listbox.delete(0, END)
-        for col in df.columns:
-            self.column_listbox.insert(END, col)
-        # Select all columns by default
-        self.column_listbox.select_set(0, END)
+        options = QFileDialog.Options()
+        self.file_path, _ = QFileDialog.getOpenFileName(self, "Select file", "", "Excel Files (*.xlsx);;All Files (*)", options=options)
+        if self.file_path:
+            self.converter.path = self.file_path
+            df = self.converter.open_file()
+            self.column_listbox.clear()
+            self.column_listbox.addItems(df.columns)
+            for i in range(self.column_listbox.count()):
+                self.column_listbox.item(i).setSelected(True)
 
     def toggle_title_entry(self):
-        if self.title_chk_state.get():
-            self.title_label.grid(column=0, row=6)
-            self.title.grid(column=1, row=6)
+        if self.title_chk_state.isChecked():
+            self.title_label.show()
+            self.title.show()
         else:
-            self.title_label.grid_remove()
-            self.title.grid_remove()
+            self.title_label.hide()
+            self.title.hide()
+
+    def toggle_description_entry(self):
+        if self.description_chk_state.isChecked():
+            self.description_label.show()
+            self.description.show()
+        else:
+            self.description_label.hide()
+            self.description.hide()
+
+    def save_file(self):
+        options = QFileDialog.Options()
+        save_path, _ = QFileDialog.getSaveFileName(self, "Save file", "", f"{self.combo.currentText().upper()} Files (*.{self.combo.currentText()});;All Files (*)", options=options)
+        if self.file_path and save_path:
+            font_size = int(self.font_size.text())
+            interval = int(self.interval.text())
+            title = self.title.text() if self.title_chk_state.isChecked() else ""
+            add_title_page = self.title_page_chk_state.isChecked()
+            description = self.description.text() if self.description_chk_state.isChecked() else ""
+            selected_columns = [item.text() for item in self.column_listbox.selectedItems()]
+            single_line = self.single_line.isChecked()
+            alignment = self.alignment.currentText()
+            if self.combo.currentText() == "pdf":
+                self.converter.convert_into_pdf(font_size=font_size, interval=interval,
+                                                title=title, file_name=save_path,
+                                                selected_columns=selected_columns, single_line=single_line,
+                                                alignment=alignment, add_title_page=add_title_page,
+                                                description=description)
+            else:
+                self.converter.convert_into_word(title=title, font_size=font_size,
+                                                 file_name=save_path,
+                                                 selected_columns=selected_columns, line_spacing=interval,
+                                                 single_line=single_line, alignment=alignment,
+                                                 add_title_page=add_title_page, description=description)
 
     def save_settings(self):
         settings = {
-            'font_size': self.font_size.get(),
-            'interval': self.interval.get(),
-            'title': self.title.get() if self.title_chk_state.get() else "",
-            'title_chk_state': self.title_chk_state.get(),
-            'format': self.combo.get(),
-            'alignment': self.alignment.get(),
-            'single_line': self.single_line.get()
+            "font_size": self.font_size.text(),
+            "interval": self.interval.text(),
+            "title_chk_state": self.title_chk_state.isChecked(),
+            "title": self.title.text(),
+            "title_page_chk_state": self.title_page_chk_state.isChecked(),
+            "description_chk_state": self.description_chk_state.isChecked(),
+            "description": self.description.text(),
+            "single_line": self.single_line.isChecked(),
+            "alignment": self.alignment.currentText(),
+            "format": self.combo.currentText()
         }
-        with open('settings.json', 'w') as file:
-            json.dump(settings, file)
+        with open(self.settings_file, 'w') as f:
+            json.dump(settings, f)
 
     def load_settings(self):
-        with open('settings.json', 'r') as file:
-            settings = json.load(file)
-        self.font_size.delete(0, END)
-        self.font_size.insert(0, settings['font_size'])
-        self.interval.delete(0, END)
-        self.interval.insert(0, settings['interval'])
-        self.title_chk_state.set(settings['title_chk_state'])
-        if settings['title_chk_state']:
-            self.toggle_title_entry()
-            self.title.delete(0, END)
-            self.title.insert(0, settings['title'])
-        self.combo.set(settings['format'])
-        self.alignment.set(settings['alignment'])
-        self.single_line.set(settings['single_line'])
+        try:
+            with open(self.settings_file, 'r') as f:
+                settings = json.load(f)
+                self.font_size.setText(settings.get("font_size", ""))
+                self.interval.setText(settings.get("interval", ""))
+                self.title_chk_state.setChecked(settings.get("title_chk_state", False))
+                self.title.setText(settings.get("title", ""))
+                self.title_page_chk_state.setChecked(settings.get("title_page_chk_state", False))
+                self.description_chk_state.setChecked(settings.get("description_chk_state", False))
+                self.description.setText(settings.get("description", ""))
+                self.single_line.setChecked(settings.get("single_line", False))
+                self.alignment.setCurrentText(settings.get("alignment", "left"))
+                self.combo.setCurrentText(settings.get("format", "docx"))
 
-    def save_file(self):
-        files = [('Selected type', '*.' + self.combo.get())]
-        save_path = filedialog.asksaveasfilename(filetypes=files)
-        if self.file_path:
-            font_size = int(self.font_size.get())
-            interval = int(self.interval.get())
-            title = self.title.get() if self.title_chk_state.get() else ""
-            selected_columns = [self.column_listbox.get(i) for i in self.column_listbox.curselection()]
-            single_line = self.single_line.get()
-            alignment = self.alignment.get()
-            if self.combo.get() == "pdf":
-                self.converter.convert_into_pdf(font_size=font_size, interval=interval,
-                                                title=title, file_name=save_path + "." + self.combo.get(),
-                                                selected_columns=selected_columns, single_line=single_line,
-                                                alignment=alignment)
-            else:
-                self.converter.convert_into_word(title=title, font_size=font_size,
-                                                 file_name=save_path + "." + self.combo.get(),
-                                                 selected_columns=selected_columns, line_spacing=interval,
-                                                 single_line=single_line, alignment=alignment)
+        except FileNotFoundError:
+            pass
+
+if __name__ == '__main__':
+    app = QApplication(sys.argv)
+    ex = Interface()
+    sys.exit(app.exec_())
