@@ -6,6 +6,9 @@ from docx import Document
 from docx.oxml import OxmlElement
 from docx.oxml.ns import qn
 
+# TODO: nie działają polskie znaki w pdf...
+# pewnie trzeba zmienić fpdf na fpdf2
+
 # Custom PDF class with optional page numbering
 class CustomPDF(FPDF):
     def __init__(self, add_page_numbers=False):
