@@ -3,6 +3,19 @@ from docx.enum.text import WD_ALIGN_PARAGRAPH
 from docx.shared import Pt
 from fpdf import FPDF
 from docx import Document
+from docx.oxml.ns import qn
+from docx.oxml import OxmlElement
+
+class CustomPDF(FPDF):
+    def __init__(self, enable_page_numbers=False):
+        super().__init__()
+        self.enable_page_numbers = enable_page_numbers
+        
+    def footer(self):
+        if self.enable_page_numbers:
+            self.set_y(-15)  # 15mm from bottom
+            self.set_font("Arial", "I", 8)
+            self.cell(0, 10, f'{self.page_no()}', 0, 0, 'C')
 
 class Converter:
     def __init__(self, path=""):
@@ -25,30 +38,30 @@ class Converter:
 
     def convert_into_pdf(self, font_size=10, interval=20, title="", file_name="mygfg.pdf",
                          selected_columns=None, single_line=True, alignment="left",
-                         add_title_page=False, description=""):
+                         add_title_page=False, description="", enable_page_numbers=False):
         df = self.adjust_columns()
         if selected_columns:
             df = df[selected_columns]
-        pdf = FPDF()
+        pdf = CustomPDF(enable_page_numbers=enable_page_numbers)
         pdf.set_font("Arial", size=font_size)
 
         if add_title_page:
             pdf.add_page()
             if title:
                 pdf.set_font("Arial", size=font_size + 4)  # Slightly larger font for the title
-                pdf.cell(0, 10, title.encode('latin-1', 'replace').decode('latin-1'), ln=True, align='C')
+                pdf.cell(0, 10, title.encode('utf-8', 'replace').decode('utf-8'), ln=True, align='C')
                 pdf.set_font("Arial", size=font_size)  # Reset font size
             if description:
-                pdf.multi_cell(0, interval, description.encode('latin-1', 'replace').decode('latin-1'), align='L')
+                pdf.multi_cell(0, interval, description.encode('utf-8', 'replace').decode('utf-8'), align='L')
         else:
             if title or description:
                 pdf.add_page()
                 if title:
                     pdf.set_font("Arial", size=font_size + 4)  # Slightly larger font for the title
-                    pdf.cell(0, 10, title.encode('latin-1', 'replace').decode('latin-1'), ln=True, align='C')
+                    pdf.cell(0, 10, title.encode('utf-8', 'replace').decode('utf-8'), ln=True, align='C')
                     pdf.set_font("Arial", size=font_size)  # Reset font size
                 if description:
-                    pdf.multi_cell(0, interval, description.encode('latin-1', 'replace').decode('latin-1'), align='L')
+                    pdf.multi_cell(0, interval, description.encode('utf-8', 'replace').decode('utf-8'), align='L')
 
         align_map = {"left": 'L', "center": 'C', "right": 'R'}
 
@@ -63,24 +76,24 @@ class Converter:
                     col_width = pdf.get_string_width(f"{col}: ") + 2
                     x_before = pdf.get_x()
                     y_before = pdf.get_y()
-                    pdf.multi_cell(col_width, interval, f"{col}: ".encode('latin-1', 'replace').decode('latin-1'),
+                    pdf.multi_cell(col_width, interval, f"{col}: ".encode('utf-8', 'replace').decode('utf-8'),
                                    align=align_map[alignment])
                     pdf.set_xy(x_before + col_width, y_before)
                     pdf.set_font("Arial", size=font_size)  # Regular font for content
-                    pdf.multi_cell(0, interval, f"{value}".encode('latin-1', 'replace').decode('latin-1'),
+                    pdf.multi_cell(0, interval, f"{value}".encode('utf-8', 'replace').decode('utf-8'),
                                    align=align_map[alignment])
                 else:
                     pdf.set_font("Arial", 'B', size=font_size)  # Bold font for column names
-                    pdf.multi_cell(0, interval, f"{col}:".encode('latin-1', 'replace').decode('latin-1'),
+                    pdf.multi_cell(0, interval, f"{col}:".encode('utf-8', 'replace').decode('utf-8'),
                                    align=align_map[alignment])
                     pdf.set_font("Arial", size=font_size)  # Regular font for other text
-                    pdf.multi_cell(0, interval, str(value).encode('latin-1', 'replace').decode('latin-1'),
+                    pdf.multi_cell(0, interval, str(value).encode('utf-8', 'replace').decode('utf-8'),
                                    align=align_map[alignment])
         pdf.output(file_name)
 
     def convert_into_word(self, font_size=10, title="", file_name="TextToWord.docx",
                           selected_columns=None, line_spacing=1.0, single_line=True, alignment="left",
-                          add_title_page=False, description=""):
+                          add_title_page=False, description="", enable_page_numbers=False):
         df = self.adjust_columns()
         if selected_columns:
             df = df[selected_columns]
@@ -125,4 +138,31 @@ class Converter:
                 run.font.size = Pt(font_size)
                 paragraph_format = paragraph.paragraph_format
                 paragraph_format.line_spacing = line_spacing  # Set line spacing
+        # Add page numbering if enabled
+        if enable_page_numbers:
+            self.add_page_number(doc)
+        
         doc.save(file_name)
+    
+    def add_page_number(self, document):
+        """Add page numbers to the document footer"""
+        sections = document.sections
+        for section in sections:
+            footer = section.footer
+            paragraph = footer.paragraphs[0] if footer.paragraphs else footer.add_paragraph()
+            paragraph.alignment = WD_ALIGN_PARAGRAPH.CENTER
+            
+            # Add page field
+            run = paragraph.add_run()
+            fldChar1 = OxmlElement('w:fldChar')
+            fldChar1.set(qn('w:fldCharType'), 'begin')
+            run._element.append(fldChar1)
+            
+            instrText = OxmlElement('w:instrText')
+            instrText.set(qn('xml:space'), 'preserve')
+            instrText.text = "PAGE"
+            run._element.append(instrText)
+            
+            fldChar2 = OxmlElement('w:fldChar')
+            fldChar2.set(qn('w:fldCharType'), 'end')
+            run._element.append(fldChar2)
