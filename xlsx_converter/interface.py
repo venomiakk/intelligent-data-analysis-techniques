@@ -81,6 +81,10 @@ class Interface(QWidget):
         self.alignment.addItems(["left", "center", "right"])
         layout.addWidget(self.alignment)
 
+        # Page numbering option
+        self.page_numbering_chk = QCheckBox("Dodaj numerację stron")
+        layout.addWidget(self.page_numbering_chk)
+
         # Save button
         self.save_button = QPushButton('Save')
         self.save_button.clicked.connect(self.save_file)
@@ -138,18 +142,21 @@ class Interface(QWidget):
             selected_columns = [item.text() for item in self.column_listbox.selectedItems()]
             single_line = self.single_line.isChecked()
             alignment = self.alignment.currentText()
+            page_numbering = self.page_numbering_chk.isChecked()
             if self.combo.currentText() == "pdf":
                 self.converter.convert_into_pdf(font_size=font_size, interval=interval,
                                                 title=title, file_name=save_path,
                                                 selected_columns=selected_columns, single_line=single_line,
                                                 alignment=alignment, add_title_page=add_title_page,
-                                                description=description)
+                                                description=description,
+                                                add_page_numbers=self.page_numbering_chk.isChecked())
             else:
                 self.converter.convert_into_word(title=title, font_size=font_size,
                                                  file_name=save_path,
                                                  selected_columns=selected_columns, line_spacing=interval,
                                                  single_line=single_line, alignment=alignment,
-                                                 add_title_page=add_title_page, description=description)
+                                                 add_title_page=add_title_page, description=description,
+                                                 add_page_numbers=self.page_numbering_chk.isChecked())
 
     def save_settings(self):
         settings = {
@@ -162,7 +169,8 @@ class Interface(QWidget):
             "description": self.description.text(),
             "single_line": self.single_line.isChecked(),
             "alignment": self.alignment.currentText(),
-            "format": self.combo.currentText()
+            "format": self.combo.currentText(),
+            "page_numbering": self.page_numbering_chk.isChecked(),
         }
         with open(self.settings_file, 'w') as f:
             json.dump(settings, f)
@@ -181,6 +189,7 @@ class Interface(QWidget):
                 self.single_line.setChecked(settings.get("single_line", False))
                 self.alignment.setCurrentText(settings.get("alignment", "left"))
                 self.combo.setCurrentText(settings.get("format", "docx"))
+                self.page_numbering_chk.setChecked(settings.get("page_numbering", False))
 
         except FileNotFoundError:
             pass

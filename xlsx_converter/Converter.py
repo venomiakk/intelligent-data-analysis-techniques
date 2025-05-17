@@ -3,6 +3,21 @@ from docx.enum.text import WD_ALIGN_PARAGRAPH
 from docx.shared import Pt
 from fpdf import FPDF
 from docx import Document
+from docx.oxml import OxmlElement
+from docx.oxml.ns import qn
+
+# Custom PDF class with optional page numbering
+class CustomPDF(FPDF):
+    def __init__(self, add_page_numbers=False):
+        super().__init__()
+        self.add_page_numbers = add_page_numbers
+        
+    def footer(self):
+        if self.add_page_numbers:
+            self.set_y(-15)  # Position 15 mm from bottom
+            self.set_font('Arial', 'I', 8)
+            # Page number centered
+            self.cell(0, 10, f'Strona {self.page_no()}', 0, 0, 'C')
 
 class Converter:
     def __init__(self, path=""):
@@ -25,11 +40,13 @@ class Converter:
 
     def convert_into_pdf(self, font_size=10, interval=20, title="", file_name="mygfg.pdf",
                          selected_columns=None, single_line=True, alignment="left",
-                         add_title_page=False, description=""):
+                         add_title_page=False, description="", add_page_numbers=False):
         df = self.adjust_columns()
         if selected_columns:
             df = df[selected_columns]
-        pdf = FPDF()
+            
+        # Use CustomPDF with page numbering option
+        pdf = CustomPDF(add_page_numbers=add_page_numbers)
         pdf.set_font("Arial", size=font_size)
 
         if add_title_page:
@@ -78,9 +95,32 @@ class Converter:
                                    align=align_map[alignment])
         pdf.output(file_name)
 
+    # Helper function to add page numbers in Word documents
+    def _add_page_number(self, doc):
+        sections = doc.sections
+        for section in sections:
+            footer = section.footer
+            paragraph = footer.paragraphs[0] if footer.paragraphs else footer.add_paragraph()
+            paragraph.alignment = WD_ALIGN_PARAGRAPH.CENTER
+            
+            # Add page number field
+            run = paragraph.add_run()
+            fld_char1 = OxmlElement('w:fldChar')
+            fld_char1.set(qn('w:fldCharType'), 'begin')
+            run._r.append(fld_char1)
+            
+            instr_text = OxmlElement('w:instrText')
+            instr_text.set(qn('xml:space'), 'preserve')
+            instr_text.text = "PAGE"
+            run._r.append(instr_text)
+            
+            fld_char2 = OxmlElement('w:fldChar')
+            fld_char2.set(qn('w:fldCharType'), 'end')
+            run._r.append(fld_char2)
+
     def convert_into_word(self, font_size=10, title="", file_name="TextToWord.docx",
                           selected_columns=None, line_spacing=1.0, single_line=True, alignment="left",
-                          add_title_page=False, description=""):
+                          add_title_page=False, description="", add_page_numbers=False):
         df = self.adjust_columns()
         if selected_columns:
             df = df[selected_columns]
@@ -125,4 +165,8 @@ class Converter:
                 run.font.size = Pt(font_size)
                 paragraph_format = paragraph.paragraph_format
                 paragraph_format.line_spacing = line_spacing  # Set line spacing
+        # Add page numbering only if requested
+        if add_page_numbers:
+            self._add_page_number(doc)
+            
         doc.save(file_name)
