@@ -1,0 +1,58 @@
+[
+    {
+        "name": "Spaghetti Bolognese",
+        "ingredients": [
+            "makaron",
+            "mięso mielone",
+            "pomidory",
+            "cebula",
+            "czosnek",
+            "marchew",
+            "seler"
+        ]
+    },
+    {
+        "name": "Omlet",
+        "ingredients": [
+            "jajka",
+            "ser",
+            "szynka",
+            "pomidory",
+            "cebula"
+        ]
+    },
+    {
+        "name": "Sałatka grecka",
+        "ingredients": [
+            "pomidory",
+            "ogórek",
+            "cebula",
+            "oliwki",
+            "ser feta",
+            "oliwa"
+        ]
+    },
+    {
+        "name": "Placki ziemniaczane",
+        "ingredients": [
+            "ziemniaki",
+            "cebula",
+            "jajka",
+            "mąka",
+            "sól",
+            "pieprz"
+        ]
+    },
+    {
+        "name": "Rosół",
+        "ingredients": [
+            "kurczak",
+            "marchew",
+            "pietruszka",
+            "seler",
+            "cebula",
+            "por",
+            "makaron"
+        ]
+    }
+]
