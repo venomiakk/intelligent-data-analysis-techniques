@@ -33,28 +33,23 @@ class RecipeDatabase:
             self.recipes = [
                 {
                     "name": "Spaghetti Bolognese",
-                    "ingredients": ["makaron", "mięso mielone", "pomidory", "cebula", "czosnek", "marchew", "seler"],
-                    "instructions": "Przygotuj sos z mięsa i warzyw, ugotuj makaron, podawaj razem."
+                    "ingredients": ["makaron", "mięso mielone", "pomidory", "cebula", "czosnek", "marchew", "seler"]
                 },
                 {
                     "name": "Omlet",
-                    "ingredients": ["jajka", "ser", "szynka", "pomidory", "cebula"],
-                    "instructions": "Roztrzep jajka, dodaj pozostałe składniki, smaż na patelni."
+                    "ingredients": ["jajka", "ser", "szynka", "pomidory", "cebula"]
                 },
                 {
                     "name": "Sałatka grecka",
-                    "ingredients": ["pomidory", "ogórek", "cebula", "oliwki", "ser feta", "oliwa"],
-                    "instructions": "Pokrój warzywa, dodaj ser feta i oliwki, polej oliwą."
+                    "ingredients": ["pomidory", "ogórek", "cebula", "oliwki", "ser feta", "oliwa"]
                 },
                 {
                     "name": "Placki ziemniaczane",
-                    "ingredients": ["ziemniaki", "cebula", "jajka", "mąka", "sól", "pieprz"],
-                    "instructions": "Zetrzyj ziemniaki i cebulę, dodaj pozostałe składniki, smaż na patelni."
+                    "ingredients": ["ziemniaki", "cebula", "jajka", "mąka", "sól", "pieprz"]
                 },
                 {
                     "name": "Rosół",
-                    "ingredients": ["kurczak", "marchew", "pietruszka", "seler", "cebula", "por", "makaron"],
-                    "instructions": "Gotuj kurczaka z warzywami, dodaj przyprawy, podawaj z makaronem."
+                    "ingredients": ["kurczak", "marchew", "pietruszka", "seler", "cebula", "por", "makaron"]
                 }
             ]
             self.save_recipes()
@@ -92,11 +87,12 @@ class SpeechThread(QThread):
     progress = pyqtSignal(int)  # postęp przetwarzania
     error = pyqtSignal(str)
     
-    def __init__(self, mode='record', file_path=None, model=None):
+    def __init__(self, mode='record', file_path=None, model=None, forced_language=None):
         super().__init__()
         self.mode = mode  # 'record' lub 'file'
         self.file_path = file_path
         self.model = model  # Model zawsze musi być przekazany
+        self.forced_language = forced_language  # Wymuszony język (pl, en lub None dla auto)
         self.sample_rate = 16000  # Whisper preferuje 16kHz
         self.recording = False
         self.audio_data = []
@@ -147,11 +143,25 @@ class SpeechThread(QThread):
             
             # Transkrypcja z Whisper
             self.progress.emit(70)
-            result = self.model.transcribe(audio_path)
+            
+            # Przygotuj parametry dla transkrypcji
+            transcribe_options = {}
+            
+            if self.forced_language:
+                # Użyj wymuszonego języka
+                transcribe_options['language'] = self.forced_language
+                result = self.model.transcribe(audio_path, **transcribe_options)
+                detected_lang = self.forced_language
+                print(f"Wymuszony język: {self.forced_language}")
+            else:
+                # Automatyczne wykrywanie języka
+                result = self.model.transcribe(audio_path)
+                detected_lang = result["language"]
+                print(f"Automatycznie wykryty język: {detected_lang}")
+            
             text = result["text"]
-            detected_lang = result["language"]
             print(f"Pełny wynik Whisper: {result}")
-            print(f"Wykryty język: {detected_lang}")
+            print(f"Używany język: {detected_lang}")
             
             # Usuń plik tymczasowy jeśli był utworzony
             if self.mode == 'record' and os.path.exists(temp_filename):
@@ -292,7 +302,7 @@ class MainWindow(QMainWindow):
         
         self.model_combo = QComboBox()
         self.model_combo.addItems(["tiny", "base", "small", "medium", "large"])
-        self.model_combo.setCurrentText("medium")  # Domyślny model
+        self.model_combo.setCurrentText("tiny")  # Domyślny model
         model_config_layout.addWidget(self.model_combo)
         
         self.change_model_button = QPushButton("Zmień model")
@@ -305,6 +315,26 @@ class MainWindow(QMainWindow):
         model_config_layout.addStretch()
         
         main_layout.addLayout(model_config_layout)
+        
+        # Sekcja wyboru języka wykrywania
+        language_detection_layout = QHBoxLayout()
+        language_detection_layout.addWidget(QLabel("Język rozpoznawania:"))
+        
+        self.detection_language_combo = QComboBox()
+        self.detection_language_combo.addItems(["Wykryj automatycznie", "Polski", "Angielski"])
+        self.detection_language_combo.setCurrentText("Wykryj automatycznie")
+        language_detection_layout.addWidget(self.detection_language_combo)
+        
+        # Dodaj tooltip z wyjaśnieniem
+        self.detection_language_combo.setToolTip(
+            "Wybierz język mowy:\n"
+            "• Wykryj automatycznie - Whisper sam wykryje język\n"
+            "• Polski - wymusza rozpoznawanie w języku polskim\n"
+            "• Angielski - wymusza rozpoznawanie w języku angielskim"
+        )
+        
+        language_detection_layout.addStretch()
+        main_layout.addLayout(language_detection_layout)
         
         # Sekcja audio
         audio_group = QVBoxLayout()
@@ -411,7 +441,7 @@ class MainWindow(QMainWindow):
         recipe_translate_layout.addWidget(QLabel("Tłumacz wybrany przepis na:"))
 
         self.recipe_language_combo = QComboBox()
-        self.recipe_language_combo.addItems(["Polski", "English", "Español", "Français", "Deutsch"])
+        self.recipe_language_combo.addItems(["English", "Español", "Français", "Deutsch"])
         recipe_translate_layout.addWidget(self.recipe_language_combo)
 
         self.translate_recipe_button = QPushButton("Tłumacz wybrany przepis")
@@ -446,20 +476,36 @@ class MainWindow(QMainWindow):
         central_widget.setLayout(main_layout)
         self.setCentralWidget(central_widget)
     
+    def get_forced_language(self):
+        """Pobierz wymuszony język lub None dla auto-detekcji"""
+        selected = self.detection_language_combo.currentText()
+        
+        language_mapping = {
+            "Wykryj automatycznie": None,
+            "Polski": "pl",
+            "Angielski": "en"
+        }
+        
+        return language_mapping.get(selected, None)
+    
     def record_audio(self):
         """Funkcja do rozpoczęcia nagrywania dźwięku z mikrofonu"""
         if not self.model_loaded:
             QMessageBox.warning(self, "Błąd", "Model Whisper nie jest jeszcze załadowany!")
             return
-            
-        self.status_label.setText(f"Nagrywanie (model: {self.current_model_size})... Mów teraz i naciśnij 'Zatrzymaj nagrywanie' gdy skończysz")
+        
+        forced_lang = self.get_forced_language()
+        lang_info = f" (wymuszony język: {self.detection_language_combo.currentText()})" if forced_lang else " (automatyczne wykrywanie)"
+        
+        self.status_label.setText(f"Nagrywanie (model: {self.current_model_size}){lang_info}... Mów teraz i naciśnij 'Zatrzymaj nagrywanie' gdy skończysz")
         self.progress_bar.setValue(0)
         self.record_button.setEnabled(False)
         self.file_button.setEnabled(False)
         self.change_model_button.setEnabled(False)  # Zablokuj zmianę modelu podczas nagrywania
+        self.detection_language_combo.setEnabled(False)  # Zablokuj zmianę języka podczas nagrywania
         self.stop_button.setEnabled(True)
         
-        self.speech_thread = SpeechThread(mode='record', model=self.whisper_model)
+        self.speech_thread = SpeechThread(mode='record', model=self.whisper_model, forced_language=forced_lang)
         self.speech_thread.finished.connect(self.process_speech_result)
         self.speech_thread.progress.connect(self.update_progress)
         self.speech_thread.error.connect(self.show_error)
@@ -480,13 +526,17 @@ class MainWindow(QMainWindow):
             
         file_path, _ = QFileDialog.getOpenFileName(self, "Wybierz plik audio", "", "Audio Files (*.wav *.mp3 *.m4a *.ogg)")
         if file_path:
-            self.status_label.setText(f"Przetwarzanie pliku (model: {self.current_model_size}): {os.path.basename(file_path)}")
+            forced_lang = self.get_forced_language()
+            lang_info = f" (wymuszony język: {self.detection_language_combo.currentText()})" if forced_lang else " (automatyczne wykrywanie)"
+            
+            self.status_label.setText(f"Przetwarzanie pliku (model: {self.current_model_size}){lang_info}: {os.path.basename(file_path)}")
             self.progress_bar.setValue(0)
             self.record_button.setEnabled(False)
             self.file_button.setEnabled(False)
             self.change_model_button.setEnabled(False)  # Zablokuj zmianę modelu podczas przetwarzania
+            self.detection_language_combo.setEnabled(False)  # Zablokuj zmianę języka podczas przetwarzania
             
-            self.speech_thread = SpeechThread(mode='file', file_path=file_path, model=self.whisper_model)
+            self.speech_thread = SpeechThread(mode='file', file_path=file_path, model=self.whisper_model, forced_language=forced_lang)
             self.speech_thread.finished.connect(self.process_speech_result)
             self.speech_thread.progress.connect(self.update_progress)
             self.speech_thread.error.connect(self.show_error)
@@ -503,6 +553,7 @@ class MainWindow(QMainWindow):
         self.record_button.setEnabled(True)
         self.file_button.setEnabled(True)
         self.change_model_button.setEnabled(True)
+        self.detection_language_combo.setEnabled(True)  # Odblokuj wybór języka
         self.stop_button.setEnabled(False)
         
         # Wyświetlanie wykrytego języka
@@ -537,10 +588,16 @@ class MainWindow(QMainWindow):
         self.remove_ingredient_button.setEnabled(False)
         
         # Dodaj informację o tłumaczeniu jeśli było potrzebne
-        if detected_lang != 'pl' and ingredients:
-            status_msg = f"Znaleziono {len(ingredients)} składników (przetłumaczono na polski), {len(filtered_recipes)} przepisów"
+        forced_lang = self.get_forced_language()
+        if forced_lang:
+            status_msg = f"Użyto wymuszonego języka ({self.detection_language_combo.currentText()}). "
         else:
-            status_msg = f"Znaleziono {len(ingredients)} składników, {len(filtered_recipes)} przepisów"
+            status_msg = f"Automatycznie wykryto język: {lang_name}. "
+        
+        if detected_lang != 'pl' and ingredients:
+            status_msg += f"Znaleziono {len(ingredients)} składników (przetłumaczono na polski), {len(filtered_recipes)} przepisów"
+        else:
+            status_msg += f"Znaleziono {len(ingredients)} składników, {len(filtered_recipes)} przepisów"
         
         self.status_label.setText(status_msg)
     
@@ -680,6 +737,8 @@ class MainWindow(QMainWindow):
         self.file_button.setEnabled(True)
         if hasattr(self, 'change_model_button'):
             self.change_model_button.setEnabled(True)
+        if hasattr(self, 'detection_language_combo'):
+            self.detection_language_combo.setEnabled(True)
         self.stop_button.setEnabled(False)
         self.progress_bar.setValue(0)
 
@@ -844,7 +903,6 @@ class MainWindow(QMainWindow):
         
         target_language = self.recipe_language_combo.currentText()
         language_codes = {
-            "Polski": "pl",
             "English": "en",
             "Español": "es",
             "Français": "fr",
@@ -888,7 +946,6 @@ class MainWindow(QMainWindow):
             self.recipe_ingredients.setText('\n'.join(translated_ingredients))
         
             self.status_label.setText(f"Przepis przetłumaczony na język: {target_language}")
-            QMessageBox.information(self, "Tłumaczenie", f"Przepis '{recipe_name}' został przetłumaczony na język: {target_language}")
             
             # Włącz przycisk przywracania oryginalnej wersji
             self.restore_recipe_button.setEnabled(True)
