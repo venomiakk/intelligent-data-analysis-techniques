@@ -323,8 +323,8 @@ class MainWindow(QMainWindow):
         language_config_layout.addWidget(QLabel("Wykrywany język:"))
         
         self.language_detection_combo = QComboBox()
-        self.language_detection_combo.addItems(["Wykryj automatycznie", "Polski", "Angielski"])
-        self.language_detection_combo.setCurrentText("Wykryj automatycznie")
+        self.language_detection_combo.addItems(["Polski", "Angielski", "Wykryj automatycznie"])
+        self.language_detection_combo.setCurrentText("Polski")
         language_config_layout.addWidget(self.language_detection_combo)
         
         language_config_layout.addStretch()
@@ -443,6 +443,25 @@ class MainWindow(QMainWindow):
         # Nagłówek sekcji przepisów z przyciskiem tłumaczenia
         recipe_header = QHBoxLayout()
         recipe_header.addWidget(QLabel("Znalezione przepisy:"))
+        
+        # Kontrolki tłumaczenia przepisów przeniesione tutaj
+        recipe_header.addWidget(QLabel("Tłumacz wybrany przepis na:"))
+
+        self.recipe_language_combo = QComboBox()
+        self.recipe_language_combo.addItems(["English", "Español", "Français", "Deutsch"])
+        recipe_header.addWidget(self.recipe_language_combo)
+
+        self.translate_recipe_button = QPushButton("Tłumacz wybrany przepis")
+        self.translate_recipe_button.clicked.connect(self.translate_selected_recipe)
+        self.translate_recipe_button.setEnabled(False)
+        recipe_header.addWidget(self.translate_recipe_button)
+
+        # Przycisk do przywracania oryginalnej wersji przepisu
+        self.restore_recipe_button = QPushButton("Przywróć oryginalną wersję")
+        self.restore_recipe_button.clicked.connect(self.restore_original_recipe)
+        self.restore_recipe_button.setEnabled(False)
+        recipe_header.addWidget(self.restore_recipe_button)
+
         recipe_header.addStretch()
         recipe_group.addLayout(recipe_header)
 
@@ -451,28 +470,7 @@ class MainWindow(QMainWindow):
         self.recipe_list.itemSelectionChanged.connect(self.on_recipe_selection_changed)
         recipe_group.addWidget(self.recipe_list)
 
-        # Kontrolki tłumaczenia przepisów
-        recipe_translate_layout = QHBoxLayout()
-        recipe_translate_layout.addWidget(QLabel("Tłumacz wybrany przepis na:"))
-
-        self.recipe_language_combo = QComboBox()
-        self.recipe_language_combo.addItems(["Polski", "English", "Español", "Français", "Deutsch"])
-        recipe_translate_layout.addWidget(self.recipe_language_combo)
-
-        self.translate_recipe_button = QPushButton("Tłumacz wybrany przepis")
-        self.translate_recipe_button.clicked.connect(self.translate_selected_recipe)
-        self.translate_recipe_button.setEnabled(False)
-        recipe_translate_layout.addWidget(self.translate_recipe_button)
-
-        # Przycisk do przywracania oryginalnej wersji przepisu
-        self.restore_recipe_button = QPushButton("Przywróć oryginalną wersję")
-        self.restore_recipe_button.clicked.connect(self.restore_original_recipe)
-        self.restore_recipe_button.setEnabled(False)
-        recipe_translate_layout.addWidget(self.restore_recipe_button)
-
-        recipe_translate_layout.addStretch()
-
-        recipe_group.addLayout(recipe_translate_layout)
+        # Usunięto duplikujący się kod kontrolek tłumaczenia
 
         recipe_details_layout = QVBoxLayout()
         self.recipe_name = QLabel("Wybierz przepis, aby zobaczyć szczegóły")
@@ -577,18 +575,19 @@ class MainWindow(QMainWindow):
         lang_name = lang_names.get(detected_lang, detected_lang)
         self.lang_label.setText(lang_name)
         
-        # Ekstrakcja składników
+        # Ekstrakcja składników z oryginalnego tekstu
         ingredients = self.extract_ingredients(text)
         
-        # Tłumacz składniki na polski jeśli wykryty język nie jest polski
+        # Zawsze tłumacz składniki na polski dla wyświetlania i wyszukiwania
         polish_ingredients = ingredients.copy()
         if detected_lang != 'pl' and ingredients:
+            self.status_label.setText("Tłumaczenie składników na polski...")
             polish_ingredients = self.translate_ingredients_to_polish(ingredients, detected_lang)
         
-        # Wyświetl oryginalne składniki
+        # Wyświetl TYLKO polskie składniki w liście
         self.ingredients_list.clear()
-        for ingredient in ingredients:
-            self.ingredients_list.addItem(ingredient)
+        for polish_ingredient in polish_ingredients:
+            self.ingredients_list.addItem(polish_ingredient)
         
         # Filtrowanie przepisów na podstawie polskich składników
         filtered_recipes = self.recipe_db.filter_recipes(polish_ingredients)
@@ -597,14 +596,60 @@ class MainWindow(QMainWindow):
         # Wyłącz przycisk usuwania (brak zaznaczenia)
         self.remove_ingredient_button.setEnabled(False)
         
-        # Dodaj informację o tłumaczeniu jeśli było potrzebne
+        # Zaktualizuj status
         if detected_lang != 'pl' and ingredients:
             status_msg = f"Znaleziono {len(ingredients)} składników (przetłumaczono na polski), {len(filtered_recipes)} przepisów"
         else:
             status_msg = f"Znaleziono {len(ingredients)} składników, {len(filtered_recipes)} przepisów"
         
         self.status_label.setText(status_msg)
-    
+
+    def search_recipes_with_current_ingredients(self, ingredients):
+        """Wyszukiwanie przepisów na podstawie aktualnych składników"""
+        if not ingredients:
+            self.recipe_list.clear()
+            self.recipe_list.addItem("Brak składników do wyszukiwania")
+            self.status_label.setText("Brak składników")
+            return
+        
+        # Składniki w liście są już zawsze w języku polskim
+        # więc nie trzeba ich tłumaczyć - po prostu użyj ich bezpośrednio
+        filtered_recipes = self.recipe_db.filter_recipes(ingredients)
+        self.display_recipes(filtered_recipes)
+        
+        # Aktualizuj status
+        self.status_label.setText(f"Aktualne składniki: {len(ingredients)}, znalezione przepisy: {len(filtered_recipes)}")
+
+    def show_recipe(self, item):
+        """Wyświetlanie szczegółów wybranego przepisu - uproszczona wersja"""
+        recipe_name = item.text()
+        if recipe_name in ["Brak przepisów spełniających kryteria", "Brak składników do wyszukiwania"]:
+            return
+        
+        # Pobierz przepis na podstawie pozycji w liście
+        current_row = self.recipe_list.row(item)
+        
+        # Znajdź aktualnie wyświetlane przepisy - składniki są już w języku polskim
+        current_ingredients = []
+        for i in range(self.ingredients_list.count()):
+            ingredient = self.ingredients_list.item(i).text()
+            current_ingredients.append(ingredient)
+        
+        if current_ingredients:
+            # Składniki są już w języku polskim, więc bezpośrednio filtruj przepisy
+            filtered_recipes = self.recipe_db.filter_recipes(current_ingredients)
+            
+            if 0 <= current_row < len(filtered_recipes):
+                selected_recipe = filtered_recipes[current_row]
+                self.recipe_name.setText(f"Przepis: {recipe_name}")  # Użyj nazwy z listy (może być przetłumaczona)
+                self.recipe_ingredients.setText("\n".join(selected_recipe["ingredients"]))
+            else:
+                self.recipe_name.setText("Nie znaleziono przepisu")
+                self.recipe_ingredients.setText("")
+        else:
+            self.recipe_name.setText("Brak składników")
+            self.recipe_ingredients.setText("")
+
     def translate_ingredients_to_polish(self, ingredients, source_lang):
         """Tłumaczenie składników na język polski do wyszukiwania przepisów"""
         if not ingredients:
@@ -617,18 +662,19 @@ class MainWindow(QMainWindow):
                 try:
                     # Tłumacz każdy składnik na polski
                     translated = self.translator.translate(ingredient, src=source_lang, dest='pl').text
-                    polish_ingredients.append(translated.lower())
+                    # Konwertuj na małe litery i usuń ewentualne spacje na końcach
+                    polish_ingredients.append(translated.lower().strip())
                     print(f"Przetłumaczono składnik: {ingredient} -> {translated}")
                 except Exception as e:
-                    # Jeśli nie udało się przetłumaczyć, zostaw oryginalny
-                    polish_ingredients.append(ingredient.lower())
+                    # Jeśli nie udało się przetłumaczyć, zostaw oryginalny w małych literach
+                    polish_ingredients.append(ingredient.lower().strip())
                     print(f"Nie udało się przetłumaczyć składnika: {ingredient}, błąd: {e}")
         
             return polish_ingredients
             
         except Exception as e:
             print(f"Błąd podczas tłumaczenia składników: {e}")
-            return [ing.lower() for ing in ingredients]  # Zwróć oryginalne składniki w małych literach
+            return [ing.lower().strip() for ing in ingredients]  # Zwróć oryginalne składniki w małych literach
     
     def translate_text(self):
         """Tłumaczenie rozpoznanego tekstu i składników"""
@@ -754,30 +800,15 @@ class MainWindow(QMainWindow):
         # Pobierz przepis na podstawie pozycji w liście
         current_row = self.recipe_list.row(item)
         
-        # Znajdź aktualnie wyświetlane przepisy
+        # Znajdź aktualnie wyświetlane przepisy - składniki są już w języku polskim
         current_ingredients = []
         for i in range(self.ingredients_list.count()):
             ingredient = self.ingredients_list.item(i).text()
             current_ingredients.append(ingredient)
         
         if current_ingredients:
-            # Przefiltruj przepisy tak samo jak wcześniej
-            lang_name = self.lang_label.text()
-            if lang_name != 'Polski' and lang_name != '-':
-                detected_lang_code = None
-                for code, name in {'pl': 'Polski', 'en': 'English', 'es': 'Español', 'fr': 'Français', 'de': 'Deutsch'}.items():
-                    if name == lang_name:
-                        detected_lang_code = code
-                        break
-                
-                if detected_lang_code and detected_lang_code != 'pl':
-                    polish_ingredients = self.translate_ingredients_to_polish(current_ingredients, detected_lang_code)
-                else:
-                    polish_ingredients = current_ingredients
-            else:
-                polish_ingredients = current_ingredients
-            
-            filtered_recipes = self.recipe_db.filter_recipes(polish_ingredients)
+            # Składniki są już w języku polskim, więc bezpośrednio filtruj przepisy
+            filtered_recipes = self.recipe_db.filter_recipes(current_ingredients)
             
             if 0 <= current_row < len(filtered_recipes):
                 selected_recipe = filtered_recipes[current_row]
@@ -837,25 +868,9 @@ class MainWindow(QMainWindow):
             self.status_label.setText("Brak składników")
             return
         
-        # Sprawdź czy składniki są w języku polskim (jeśli nie, przetłumacz)
-        lang_name = self.lang_label.text()
-        if lang_name != 'Polski' and lang_name != '-':
-            # Tłumacz składniki na polski
-            detected_lang_code = None
-            for code, name in {'pl': 'Polski', 'en': 'English', 'es': 'Español', 'fr': 'Français', 'de': 'Deutsch'}.items():
-                if name == lang_name:
-                    detected_lang_code = code
-                    break
-            
-            if detected_lang_code and detected_lang_code != 'pl':
-                polish_ingredients = self.translate_ingredients_to_polish(ingredients, detected_lang_code)
-            else:
-                polish_ingredients = ingredients
-        else:
-            polish_ingredients = ingredients
-        
-        # Filtrowanie przepisów
-        filtered_recipes = self.recipe_db.filter_recipes(polish_ingredients)
+        # Składniki w liście są już zawsze w języku polskim
+        # więc nie trzeba ich tłumaczyć - po prostu użyj ich bezpośrednio
+        filtered_recipes = self.recipe_db.filter_recipes(ingredients)
         self.display_recipes(filtered_recipes)
         
         # Aktualizuj status
@@ -906,7 +921,6 @@ class MainWindow(QMainWindow):
         
         target_language = self.recipe_language_combo.currentText()
         language_codes = {
-            "Polski": "pl",
             "English": "en",
             "Español": "es",
             "Français": "fr",
@@ -914,9 +928,6 @@ class MainWindow(QMainWindow):
         }
         target_code = language_codes.get(target_language, "en")
         
-        if target_code == "pl":
-            QMessageBox.information(self, "Informacja", "Przepis jest już w języku polskim.")
-            return
         
         try:
             self.status_label.setText(f"Tłumaczenie przepisu na język: {target_language}...")
@@ -950,7 +961,7 @@ class MainWindow(QMainWindow):
             self.recipe_ingredients.setText('\n'.join(translated_ingredients))
         
             self.status_label.setText(f"Przepis przetłumaczony na język: {target_language}")
-            QMessageBox.information(self, "Tłumaczenie", f"Przepis '{recipe_name}' został przetłumaczony na język: {target_language}")
+            # QMessageBox.information(self, "Tłumaczenie", f"Przepis '{recipe_name}' został przetłumaczony na język: {target_language}")
             
             # Włącz przycisk przywracania oryginalnej wersji
             self.restore_recipe_button.setEnabled(True)
