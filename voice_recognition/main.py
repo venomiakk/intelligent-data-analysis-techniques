@@ -16,6 +16,7 @@ import soundfile as sf
 import wave
 import pyaudio
 import string
+from PyQt5.QtWidgets import QFrame
 # przed zmina
 class RecipeDatabase:
     """Klasa zarządzająca bazą przepisów"""
@@ -361,7 +362,11 @@ class MainWindow(QMainWindow):
         # Status
         self.status_label = QLabel("Gotowy do rozpoznawania mowy...")
         audio_group.addWidget(self.status_label)
-        
+        # Dodaj poziomą linię oddzielającą sekcje
+        line = QFrame()
+        line.setFrameShape(QFrame.HLine)
+        line.setFrameShadow(QFrame.Sunken)
+        audio_group.addWidget(line)
         # Sekcja tekstu - podzielona na dwa okienka
         text_section = QHBoxLayout()
         
@@ -442,7 +447,8 @@ class MainWindow(QMainWindow):
 
         # Nagłówek sekcji przepisów z przyciskiem tłumaczenia
         recipe_header = QHBoxLayout()
-        recipe_header.addWidget(QLabel("Znalezione przepisy:"))
+        recipe_header.addWidget(QLabel("Znalezione przepisy"))
+        recipe_header.addStretch()
         
         # Kontrolki tłumaczenia przepisów przeniesione tutaj
         recipe_header.addWidget(QLabel("Tłumacz wybrany przepis na:"))
