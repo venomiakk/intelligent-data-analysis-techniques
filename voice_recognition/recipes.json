@@ -54,5 +54,579 @@
             "por",
             "makaron"
         ]
+    },
+    {
+        "name": "Zupa pomidorowa",
+        "ingredients": [
+            "pomidory",
+            "cebula",
+            "czosnek",
+            "marchew",
+            "ryż",
+            "śmietana"
+        ]
+    },
+      {
+        "name": "Spaghetti Carbonara",
+        "ingredients": [
+            "papryka",
+            "sól",
+            "kasza",
+            "krewetki",
+            "pieprz"
+        ]
+    },
+    {
+        "name": "Kurczak curry",
+        "ingredients": [
+            "fasola",
+            "ser",
+            "cukinia",
+            "miód",
+            "bazylia",
+            "masło",
+            "wołowina"
+        ]
+    },
+    {
+        "name": "Schabowy z ziemniakami",
+        "ingredients": [
+            "buraki",
+            "pomidory",
+            "musztarda",
+            "oliwa",
+            "brokuły",
+            "makaron"
+        ]
+    },
+    {
+        "name": "Zupa ogórkowa",
+        "ingredients": [
+            "oliwa",
+            "sól",
+            "chili",
+            "koper",
+            "seler"
+        ]
+    },
+    {
+        "name": "Leczo",
+        "ingredients": [
+            "ser",
+            "kapusta",
+            "bakłażan",
+            "soczewica",
+            "miód",
+            "bazylia",
+            "pieprz"
+        ]
+    },
+    {
+        "name": "Pizza Margherita",
+        "ingredients": [
+            "kapusta",
+            "pieczarki",
+            "oliwa",
+            "masło",
+            "cukinia",
+            "ketchup"
+        ]
+    },
+    {
+        "name": "Makaron z pesto",
+        "ingredients": [
+            "bakłażan",
+            "tuńczyk",
+            "brokuły",
+            "bazylia",
+            "śmietana",
+            "krewetki"
+        ]
+    },
+    {
+        "name": "Gulasz wołowy",
+        "ingredients": [
+            "pieczarki",
+            "por",
+            "koper",
+            "seler",
+            "bakłażan",
+            "tuńczyk",
+            "imbir",
+            "śledź"
+        ]
+    },
+    {
+        "name": "Tortilla z warzywami",
+        "ingredients": [
+            "koper",
+            "majonez",
+            "pomidory",
+            "śledź",
+            "fasola",
+            "wołowina"
+        ]
+    },
+    {
+        "name": "Naleśniki z serem",
+        "ingredients": [
+            "soczewica",
+            "ziemniaki",
+            "tuńczyk",
+            "cebula",
+            "marchew",
+            "feta",
+            "szynka",
+            "musztarda"
+        ]
+    },
+    {
+        "name": "Kotlety mielone",
+        "ingredients": [
+            "musztarda",
+            "majonez",
+            "makaron",
+            "miód",
+            "ketchup",
+            "czosnek",
+            "wołowina"
+        ]
+    },
+    {
+        "name": "Gołąbki",
+        "ingredients": [
+            "szpinak",
+            "feta",
+            "śmietana",
+            "buraki",
+            "oliwki"
+        ]
+    },
+    {
+        "name": "Zupa krem z dyni",
+        "ingredients": [
+            "pietruszka",
+            "ogórek",
+            "szpinak",
+            "kapusta",
+            "jajka",
+            "miód",
+            "krewetki",
+            "pieczarki"
+        ]
+    },
+    {
+        "name": "Ratatouille",
+        "ingredients": [
+            "śledź",
+            "papryka",
+            "soczewica",
+            "pomidory",
+            "wołowina",
+            "szpinak"
+        ]
+    },
+    {
+        "name": "Risotto z grzybami",
+        "ingredients": [
+            "tuńczyk",
+            "ziemniaki",
+            "pomidory",
+            "cebula",
+            "kalafior",
+            "pietruszka",
+            "papryka"
+        ]
+    },
+    {
+        "name": "Szaszłyki z kurczaka",
+        "ingredients": [
+            "seler",
+            "oregano",
+            "ketchup",
+            "oliwa",
+            "krewetki"
+        ]
+    },
+    {
+        "name": "Lasagne",
+        "ingredients": [
+            "tuńczyk",
+            "cukinia",
+            "cebula",
+            "grzyby",
+            "seler",
+            "kasza",
+            "ziemniaki",
+            "soczewica"
+        ]
+    },
+    {
+        "name": "Curry warzywne",
+        "ingredients": [
+            "wieprzowina",
+            "czosnek",
+            "sól",
+            "cytryna",
+            "seler",
+            "brokuły"
+        ]
+    },
+    {
+        "name": "Zupa kalafiorowa",
+        "ingredients": [
+            "cytryna",
+            "imbir",
+            "oliwki",
+            "czosnek",
+            "kasza",
+            "ser"
+        ]
+    },
+    {
+        "name": "Ryż z warzywami",
+        "ingredients": [
+            "bakłażan",
+            "ryż",
+            "marchew",
+            "soczewica",
+            "pomidory",
+            "oliwa",
+            "ziemniaki"
+        ]
+    },
+    {
+        "name": "Jajecznica",
+        "ingredients": [
+            "oregano",
+            "papryka",
+            "ziemniaki",
+            "kasza",
+            "majonez",
+            "miód",
+            "buraki",
+            "pieprz"
+        ]
+    },
+    {
+        "name": "Grillowany łosoś",
+        "ingredients": [
+            "śledź",
+            "kalafior",
+            "chili",
+            "śmietana",
+            "fasola",
+            "jajka",
+            "pieczarki"
+        ]
+    },
+    {
+        "name": "Sałatka z tuńczykiem",
+        "ingredients": [
+            "czosnek",
+            "sól",
+            "wieprzowina",
+            "musztarda",
+            "bakłażan",
+            "ketchup",
+            "seler",
+            "jajka"
+        ]
+    },
+    {
+        "name": "Krem z brokułów",
+        "ingredients": [
+            "imbir",
+            "ogórek",
+            "tuńczyk",
+            "kapusta",
+            "papryka",
+            "fasola",
+            "musztarda",
+            "buraki"
+        ]
+    },
+    {
+        "name": "Fasolka po bretońsku",
+        "ingredients": [
+            "śmietana",
+            "oliwki",
+            "szynka",
+            "koper",
+            "kalafior",
+            "ryż"
+        ]
+    },
+    {
+        "name": "Chili con carne",
+        "ingredients": [
+            "kurczak",
+            "pomidory",
+            "ogórek",
+            "ryż",
+            "kalafior",
+            "musztarda",
+            "masło",
+            "cytryna"
+        ]
+    },
+    {
+        "name": "Ziemniaki zapiekane",
+        "ingredients": [
+            "cytryna",
+            "kurczak",
+            "kalafior",
+            "imbir",
+            "brokuły",
+            "kapusta",
+            "pieczarki",
+            "wieprzowina"
+        ]
+    },
+    {
+        "name": "Makaron z sosem serowym",
+        "ingredients": [
+            "seler",
+            "ketchup",
+            "cukinia",
+            "majonez",
+            "szpinak",
+            "makaron",
+            "feta"
+        ]
+    },
+    {
+        "name": "Kopytka",
+        "ingredients": [
+            "śledź",
+            "wieprzowina",
+            "feta",
+            "pieczarki",
+            "chili"
+        ]
+    },
+    {
+        "name": "Zupa jarzynowa",
+        "ingredients": [
+            "por",
+            "pomidory",
+            "oliwa",
+            "seler",
+            "buraki",
+            "szynka"
+        ]
+    },
+    {
+        "name": "Pierogi ruskie",
+        "ingredients": [
+            "ogórek",
+            "ser",
+            "marchew",
+            "majonez",
+            "pietruszka",
+            "śmietana"
+        ]
+    },
+    {
+        "name": "Ryba po grecku",
+        "ingredients": [
+            "tuńczyk",
+            "ziemniaki",
+            "papryka",
+            "ogórek",
+            "masło"
+        ]
+    },
+    {
+        "name": "Kluski śląskie",
+        "ingredients": [
+            "oregano",
+            "makaron",
+            "brokuły",
+            "cukinia",
+            "jajka",
+            "marchew",
+            "oliwa",
+            "imbir"
+        ]
+    },
+    {
+        "name": "Kasza z warzywami",
+        "ingredients": [
+            "koper",
+            "ziemniaki",
+            "brokuły",
+            "szpinak",
+            "grzyby"
+        ]
+    },
+    {
+        "name": "Tarta warzywna",
+        "ingredients": [
+            "koper",
+            "szpinak",
+            "cebula",
+            "bakłażan",
+            "oliwa",
+            "pieprz",
+            "kasza"
+        ]
+    },
+    {
+        "name": "Zupa cebulowa",
+        "ingredients": [
+            "ser",
+            "majonez",
+            "kasza",
+            "pieprz",
+            "oregano",
+            "feta",
+            "kapusta",
+            "makaron"
+        ]
+    },
+    {
+        "name": "Makaron z krewetkami",
+        "ingredients": [
+            "masło",
+            "czosnek",
+            "marchew",
+            "kasza",
+            "wieprzowina"
+        ]
+    },
+    {
+        "name": "Kotlety jajeczne",
+        "ingredients": [
+            "szpinak",
+            "kapusta",
+            "bakłażan",
+            "seler",
+            "por",
+            "cytryna"
+        ]
+    },
+    {
+        "name": "Kaszotto",
+        "ingredients": [
+            "pieczarki",
+            "kurczak",
+            "ketchup",
+            "jajka",
+            "wieprzowina"
+        ]
+    },
+    {
+        "name": "Kurczak pieczony",
+        "ingredients": [
+            "cukinia",
+            "feta",
+            "szynka",
+            "por",
+            "ketchup",
+            "seler",
+            "soczewica",
+            "ziemniaki"
+        ]
+    },
+    {
+        "name": "Zupa szczawiowa",
+        "ingredients": [
+            "czosnek",
+            "majonez",
+            "ziemniaki",
+            "kalafior",
+            "brokuły",
+            "jajka"
+        ]
+    },
+    {
+        "name": "Bigos",
+        "ingredients": [
+            "buraki",
+            "bazylia",
+            "marchew",
+            "oliwa",
+            "bakłażan",
+            "pietruszka"
+        ]
+    },
+    {
+        "name": "Bakłażan zapiekany",
+        "ingredients": [
+            "fasola",
+            "szpinak",
+            "cukinia",
+            "sól",
+            "pieczarki"
+        ]
+    },
+    {
+        "name": "Zupa rybna",
+        "ingredients": [
+            "krewetki",
+            "oliwki",
+            "musztarda",
+            "bazylia",
+            "pietruszka"
+        ]
+    },
+    {
+        "name": "Kanapki z pastą jajeczną",
+        "ingredients": [
+            "koper",
+            "feta",
+            "bakłażan",
+            "cytryna",
+            "tuńczyk",
+            "pieczarki",
+            "fasola",
+            "grzyby"
+        ]
+    },
+    {
+        "name": "Zapiekanka makaronowa",
+        "ingredients": [
+            "wieprzowina",
+            "majonez",
+            "cytryna",
+            "tuńczyk",
+            "seler"
+        ]
+    },
+    {
+        "name": "Makaron z tuńczykiem",
+        "ingredients": [
+            "ziemniaki",
+            "majonez",
+            "ser",
+            "seler",
+            "sól",
+            "feta"
+        ]
+    },
+    {
+        "name": "Zupa miso",
+        "ingredients": [
+            "masło",
+            "śledź",
+            "wieprzowina",
+            "buraki",
+            "wołowina",
+            "grzyby"
+        ]
+    },
+    {
+        "name": "Zupa z soczewicy",
+        "ingredients": [
+            "pieczarki",
+            "pietruszka",
+            "masło",
+            "ziemniaki",
+            "chili",
+            "bazylia",
+            "marchew",
+            "oliwki"
+        ]
     }
 ]

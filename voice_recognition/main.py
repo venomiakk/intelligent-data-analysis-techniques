@@ -97,15 +97,14 @@ class SpeechThread(QThread):
         super().__init__()
         self.mode = mode  # 'record' lub 'file'
         self.file_path = file_path
-        self.model = model  # Model zawsze musi być przekazany
-        self.forced_language = forced_language  # Wymuszone język (None = auto)
-        self.sample_rate = 16000  # Whisper preferuje 16kHz
+        self.model = model
+        self.forced_language = forced_language  # Wymuszony język (None = auto)
+        self.sample_rate = 16000 
         self.recording = False
         self.audio_data = []
         
     def run(self):
         try:
-            # Model musi być już załadowany
             if not self.model:
                 raise Exception("Model Whisper nie został przekazany!")
             
@@ -135,7 +134,7 @@ class SpeechThread(QThread):
                     if np.max(np.abs(audio_array)) > 0:
                         audio_array = audio_array / np.max(np.abs(audio_array))
                     
-                    # Zapisz do pliku tymczasowego
+                    # Zapis do pliku tymczasowego
                     sf.write(temp_filename, audio_array, self.sample_rate)
                     audio_path = temp_filename
                 else:
@@ -201,7 +200,6 @@ class WhisperModelManager(QThread):
         try:
             self.loading_progress.emit(f"Ładowanie modelu {self.model_size}...")
             
-            # Załaduj model (Whisper automatycznie pobierze go jeśli nie ma w cache)
             self.model = whisper.load_model(self.model_size)
             self.loading_progress.emit(f"Model {self.model_size} załadowany pomyślnie!")
             self.model_loaded.emit(self.model)
