@@ -16,7 +16,7 @@ class SpeechThread(QThread):
         self.mode = mode  # 'record' lub 'file'
         self.file_path = file_path
         self.model = model
-        self.forced_language = forced_language  # Wymuszony język (None = auto)
+        self.forced_language = forced_language 
         self.sample_rate = 16000 
         self.recording = False
         self.audio_data = []
@@ -30,44 +30,35 @@ class SpeechThread(QThread):
             
             # Nagrywanie lub wczytywanie audio
             if self.mode == 'record':
-                # Nagrywanie dźwięku
                 temp_file = tempfile.NamedTemporaryFile(delete=False, suffix='.wav')
                 temp_filename = temp_file.name
                 temp_file.close()
                 
-                # Przygotowanie do nagrywania
                 print("Rozpoczynam nagrywanie, naciśnij przycisk stop aby zakończyć...")
                 self.recording = True
                 self.audio_data = []
                 
-                # Otwarcie strumienia audio
                 with sd.InputStream(samplerate=self.sample_rate, channels=1, callback=self._audio_callback):
                     while self.recording:
-                        sd.sleep(100)  # Czekaj 100ms
+                        sd.sleep(100)
                 
-                # Konwersja zebranych danych do tablicy numpy
                 if len(self.audio_data) > 0:
                     audio_array = np.concatenate(self.audio_data, axis=0)
-                    # Normalizacja audio
                     if np.max(np.abs(audio_array)) > 0:
                         audio_array = audio_array / np.max(np.abs(audio_array))
                     
-                    # Zapis do pliku tymczasowego
                     sf.write(temp_filename, audio_array, self.sample_rate)
                     audio_path = temp_filename
                 else:
                     raise Exception("Brak nagranych danych audio")
                     
             else:
-                # Użyj wybranego pliku
                 audio_path = self.file_path
             
             self.progress.emit(50)
             
-            # Transkrypcja z Whisper
             self.progress.emit(70)
-            
-            # Przygotuj parametry dla transcribe
+
             transcribe_options = {"verbose": True}
             if self.forced_language:
                 transcribe_options["language"] = self.forced_language
@@ -79,7 +70,6 @@ class SpeechThread(QThread):
             print(f"Pełny wynik Whisper: {result}")
             print(f"Wykryty/wymuszone język: {detected_lang}")
             
-            # Usuń plik tymczasowy jeśli był utworzony
             if self.mode == 'record' and os.path.exists(temp_filename):
                 os.unlink(temp_filename)
                 
@@ -88,7 +78,6 @@ class SpeechThread(QThread):
             
         except Exception as e:
             self.error.emit(f"Błąd: {str(e)}")
-            # Próba usunięcia pliku tymczasowego w przypadku błędu
             if self.mode == 'record' and 'temp_filename' in locals() and os.path.exists(temp_filename):
                 os.unlink(temp_filename)
     

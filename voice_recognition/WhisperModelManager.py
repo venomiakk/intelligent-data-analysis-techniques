@@ -3,8 +3,8 @@ from PyQt5.QtCore import QThread, pyqtSignal
 
 class WhisperModelManager(QThread):
     """Klasa do zarządzania modelem Whisper z cachowaniem"""
-    model_loaded = pyqtSignal(object)  # sygnał z załadowanym modelem
-    loading_progress = pyqtSignal(str)  # sygnał z informacją o postępie
+    model_loaded = pyqtSignal(object)
+    loading_progress = pyqtSignal(str)
     
     def __init__(self, model_size='medium'):
         super().__init__()

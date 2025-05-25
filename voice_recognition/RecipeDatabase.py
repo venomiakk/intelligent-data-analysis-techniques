@@ -53,14 +53,12 @@ class RecipeDatabase:
             return []
         
         filtered = []
-        
-        # Konwersja wszystkich składników na małe litery dla łatwiejszego porównania
+
         ingredients = [ing.lower() for ing in ingredients]
         
         for recipe in self.recipes:
             recipe_ingredients = [ing.lower() for ing in recipe["ingredients"]]
-            
-            # Sprawdź czy WSZYSTKIE składniki są obecne w przepisie
+
             if all(any(ingredient in recipe_ing or recipe_ing in ingredient 
                       for recipe_ing in recipe_ingredients) 
                   for ingredient in ingredients):
