@@ -177,20 +177,22 @@ def creating_model():
     #usemodel
 
     image_batch, label_batch = test_dataset.as_numpy_iterator().next()
-    predictions = model.predict_on_batch(image_batch).flatten()
 
-    # Apply a sigmoid since our model returns logits
-    predictions = tf.nn.sigmoid(predictions)
-    predictions = tf.where(predictions < 0.5, 0, 1)
+    # Predict class probabilities
+    predictions = model.predict_on_batch(image_batch)
 
-    print('Predictions:\n', predictions.numpy())
+    # Select the class with the highest probability
+    predicted_classes = tf.argmax(predictions, axis=1)
+
+    print('Predictions:\n', predicted_classes.numpy())
     print('Labels:\n', label_batch)
 
+    # Visualize the predictions
     plt.figure(figsize=(10, 10))
     for i in range(9):
         ax = plt.subplot(3, 3, i + 1)
         plt.imshow(image_batch[i].astype("uint8"))
-        plt.title(class_names[predictions[i]])
+        plt.title(class_names[predicted_classes[i]])
         plt.axis("off")
     plt.show()
 
